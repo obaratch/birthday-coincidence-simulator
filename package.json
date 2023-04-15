@@ -1,0 +1,14 @@
+{
+  "name": "birthday-coincidence-simulator",
+  "version": "1.0.0",
+  "description": "Birthday Coincidence Simulator",
+  "main": "birthday.js",
+  "author": "Takashi Obara <takashi.obara@obalab.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "node birthday.js"
+  },
+  "dependencies": {
+    "chartjs-to-image": "^1.1.0"
+  }
+}
