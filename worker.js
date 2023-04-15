@@ -1,9 +1,12 @@
 const { parentPort, threadId: wid } = require("node:worker_threads");
 
-parentPort.on("message", ({ size }) => {
-  const data = generateBirthdays(size);
-  const foundPair = findPair(data);
-  parentPort.postMessage({ wid, data, foundPair });
+parentPort.on("message", ({ size, LOOP }) => {
+  const data = Array.from(Array(LOOP))
+    .map(() => generateBirthdays(size))
+    .map(findPair);
+  const coincidenceCount = data.filter((d) => d).length;
+  const coincidenceRatio = coincidenceCount / data.length;
+  parentPort.postMessage({ wid, size, coincidenceCount, coincidenceRatio });
   process.exit();
 });
 
