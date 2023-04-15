@@ -1,28 +1,23 @@
+const config = require("config");
 const ChartJsImgae = require("chartjs-to-image");
 
-const LOOP = 100000;
-
-const NUM_MIN = 1;
-const NUM_MAX = 60;
-
-const CHART_FILE_NAME = "birthday.png";
-const WIDTH = 1920 / 2;
-const HEIGHT = 1080 / 2;
+const { ClassSize, LOOP } = config;
 
 let data = [];
-for (let num = NUM_MIN; num <= NUM_MAX; num++) {
+for (let size = ClassSize.MIN; size <= ClassSize.MAX; size++) {
   const birthdayComparisons = Array.from(Array(LOOP))
-    .map(() => generateBirthdays(num))
+    .map(() => generateBirthdays(size))
     .map(foundTheSame);
   const coincidenceCount = birthdayComparisons.filter((same) => same).length;
   const coincidenceRatio = coincidenceCount / LOOP;
   console.log(
-    `Class of ${num}: ${coincidenceCount}/${LOOP} = ${coincidenceRatio}`
+    `Class of ${size}: ${coincidenceCount}/${LOOP} = ${coincidenceRatio}`
   );
-  data.push({ num, coincidenceRatio });
+  data.push({ size, coincidenceRatio });
 }
 
 const chart = new ChartJsImgae();
+const { FILE_NAME, TITLE, WIDTH, HEIGHT } = config.ChartImage;
 chart.setChartJsVersion("4");
 chart.setWidth(WIDTH);
 chart.setHeight(HEIGHT);
@@ -30,22 +25,21 @@ chart.setConfig({
   type: "line",
   options: {
     scales: {
-      x: { title: { display: true, text: "Class Size" } },
+      xAxis: { title: { display: true, text: "Class Size" } },
     },
   },
   data: {
-    labels: data.map((d) => d.num),
+    labels: data.map((d) => d.size),
     datasets: [
       {
-        label:
-          "Possibility of One or More Birthday Coincidences in A Classroom",
+        label: TITLE,
         data: data.map((d) => d.coincidenceRatio),
       },
     ],
   },
 });
-chart.toFile(CHART_FILE_NAME).then(() => {
-  console.log(`Chart image(${WIDTH}x${HEIGHT}) saved to ${CHART_FILE_NAME}.`);
+chart.toFile(FILE_NAME).then(() => {
+  console.log(`Chart image(${WIDTH}x${HEIGHT}) saved to ${FILE_NAME}.`);
 });
 
 // ----------------

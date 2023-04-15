@@ -8,7 +8,8 @@ This is a dead simple JS to simulate the probability of two or more people in a 
 $ npm start
 ```
 
-The result image will be saved in the project root.
+- The result image will be saved in the project root.
+- Override the settings by creating `config/local.js`.
 
 ## BTW
 
