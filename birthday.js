@@ -1,9 +1,8 @@
 const config = require("config");
+const { Worker } = require("node:worker_threads");
 const ChartJsImgae = require("chartjs-to-image");
 
 const { ClassSize, LOOP } = config;
-
-const { Worker } = require("node:worker_threads");
 
 let reqs = [];
 for (let size = ClassSize.MIN; size <= ClassSize.MAX; size++) {

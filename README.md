@@ -1,6 +1,6 @@
 # Birthday Coincidence Simulator
 
-This is a dead simple JS to simulate the probability of two or more people in a classroom (up to 60 by default) having the same birthday. Please note that it generates a PNG image using an external service [QuickChart](https://quickchart.io).
+This NodeJS app simulates the probability of two or more people in a classroom (up to 60 by default) having the same birthday, assuming the random chance of birth throughout the year. Please note that it generates a PNG image using an external service [QuickChart](https://quickchart.io).
 
 ## Setup
 
