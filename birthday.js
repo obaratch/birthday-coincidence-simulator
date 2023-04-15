@@ -10,14 +10,21 @@ for (let size = ClassSize.MIN; size <= ClassSize.MAX; size++) {
   reqs.push(
     new Promise((resolve) => {
       const worker = new Worker("./worker.js");
-      worker.on("message", (msg) => resolve(msg));
+      worker.on("message", (result) => {
+        const {
+          size,
+          coincidenceCount: count,
+          coincidenceRatio: ratio,
+        } = result;
+        console.log(`Class of ${size}: ${count}/${LOOP} = ${ratio}`);
+        resolve(result);
+      });
       worker.postMessage({ size, LOOP });
     })
   );
 }
 
 Promise.all(reqs).then((data) => {
-  console.log(data);
   const chart = new ChartJsImgae();
   const { FILE_NAME, TITLE, WIDTH, HEIGHT } = config.ChartImage;
   chart.setChartJsVersion("4");
