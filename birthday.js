@@ -3,59 +3,63 @@ const ChartJsImgae = require("chartjs-to-image");
 
 const { ClassSize, LOOP } = config;
 
-let data = [];
+const { Worker } = require("node:worker_threads");
+
+let reqs = [];
+let tmp = {};
 for (let size = ClassSize.MIN; size <= ClassSize.MAX; size++) {
-  const birthdayComparisons = Array.from(Array(LOOP))
-    .map(() => generateBirthdays(size))
-    .map(foundTheSame);
-  const coincidenceCount = birthdayComparisons.filter((same) => same).length;
-  const coincidenceRatio = coincidenceCount / LOOP;
-  console.log(
-    `Class of ${size}: ${coincidenceCount}/${LOOP} = ${coincidenceRatio}`
-  );
-  data.push({ size, coincidenceRatio });
-}
-
-const chart = new ChartJsImgae();
-const { FILE_NAME, TITLE, WIDTH, HEIGHT } = config.ChartImage;
-chart.setChartJsVersion("4");
-chart.setWidth(WIDTH);
-chart.setHeight(HEIGHT);
-chart.setConfig({
-  type: "line",
-  options: {
-    scales: {
-      xAxis: { title: { display: true, text: "Class Size" } },
-    },
-  },
-  data: {
-    labels: data.map((d) => d.size),
-    datasets: [
-      {
-        label: TITLE,
-        data: data.map((d) => d.coincidenceRatio),
-      },
-    ],
-  },
-});
-chart.toFile(FILE_NAME).then(() => {
-  console.log(`Chart image(${WIDTH}x${HEIGHT}) saved to ${FILE_NAME}.`);
-});
-
-// ----------------
-// utils below
-
-function generateBirthdays(num) {
-  return Array.from(Array(num))
-    .map(() => Math.round(Math.random() * 365))
-    .sort((a, b) => a - b);
-}
-
-function foundTheSame(list) {
-  for (let i = 0; i < list.length - 1; i++) {
-    if (list[i] === list[i + 1]) {
-      return true;
-    }
+  for (let i = 0; i < LOOP; i++) {
+    reqs.push(
+      new Promise((resolve) => {
+        const worker = new Worker("./worker.js");
+        worker.on("message", (msg) => resolve(msg));
+        worker.postMessage({ size });
+      }).then(({ wid, data, foundPair }) => {
+        const size = data.length;
+        if (!tmp[size]) {
+          tmp[size] = [];
+        }
+        tmp[size].push({ wid, size, foundPair });
+      })
+    );
   }
-  return false;
 }
+
+Promise.all(reqs)
+  .then(() => {
+    const data = Object.values(tmp).map((results) => {
+      const size = results[0].size;
+      const coincidenceCount = results.filter((d) => d.foundPair).length;
+      const coincidenceRatio = coincidenceCount / results.length;
+      return { size, coincidenceRatio };
+    });
+    console.log(data);
+    return data;
+  })
+  .then((data) => {
+    const chart = new ChartJsImgae();
+    const { FILE_NAME, TITLE, WIDTH, HEIGHT } = config.ChartImage;
+    chart.setChartJsVersion("4");
+    chart.setWidth(WIDTH);
+    chart.setHeight(HEIGHT);
+    chart.setConfig({
+      type: "line",
+      options: {
+        scales: {
+          xAxis: { title: { display: true, text: "Class Size" } },
+        },
+      },
+      data: {
+        labels: data.map((d) => d.size),
+        datasets: [
+          {
+            label: TITLE,
+            data: data.map((d) => d.coincidenceRatio),
+          },
+        ],
+      },
+    });
+    chart.toFile(FILE_NAME).then(() => {
+      console.log(`Chart image(${WIDTH}x${HEIGHT}) saved to ${FILE_NAME}.`);
+    });
+  });
